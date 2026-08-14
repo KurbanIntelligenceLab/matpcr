@@ -1,5 +1,11 @@
 # MatPCR — code repository
 
+## Abstract
+
+Vision-language and language models increasingly interpret materials data, yet benchmarks report that they hallucinate invalid properties and violate physical law. Evaluation matches final answers to scarce human labels, while discovery agents verify final proposals or density functional theory (DFT) execution. Neither measures the physical consistency of a model's reasoning chain. Materials data carries its own physics, making a large class of materials reasoning verifiable without annotation. We introduce MatPCR, a label-free benchmark whose programmatic oracles check diffraction geometry through Bragg's law, scale bars, spectral peaks, and DFT-grounded stability, metallicity and property magnitude. We define the Physical-Consistency Rate over image and structure inputs; introduce Constraint-Grounded Self-Verification, an agentic loop whose gain survives self-refinement and equal-compute re-prompting controls; release an open verifier useful in distribution but near chance on all six held-out constraint types; and derive an exact identity for how oracle error displaces the reported rate.
+
+# 
+
 This folder is the upload target for the manuscript's **Code availability**
 statement (`version3/matpcr_snjnl.tex`): "All code, including the oracle
 implementations with unit tests, the chain-parsing code, the metric code,
