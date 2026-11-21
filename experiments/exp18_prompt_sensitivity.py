@@ -171,11 +171,13 @@ def run_xrd(n, seed, api_key, total_cost):
     rates = {}
     for variant, alt_prompt in PROMPT_VARIANTS["xrd"].items():
         hits = {}
-        for it in items:
+        for item_idx, it in enumerate(items):
             prompt = it["prompt_original"] if variant == "original" else alt_prompt
             for model_key in PROMPT_MODELS:
+                t0 = time.time()
                 chain_text, cost = call_model(model_key, "image", it["image_path"], prompt, api_key)
                 total_cost[0] += cost
+                print(f"    [xrd/{variant}] item {item_idx + 1}/{len(items)} {model_key} ({time.time() - t0:.1f}s)", flush=True)
                 if not isinstance(chain_text, str):
                     continue
                 parsed = pilot.parse_chain(chain_text)
@@ -198,11 +200,13 @@ def run_spectrum(n, seed, api_key, total_cost):
     rates = {}
     for variant, alt_prompt in PROMPT_VARIANTS["spectrum"].items():
         hits = {}
-        for it in items:
+        for item_idx, it in enumerate(items):
             prompt = it["prompt_original"] if variant == "original" else alt_prompt
             for model_key in PROMPT_MODELS:
+                t0 = time.time()
                 chain_text, cost = call_model(model_key, "image", it["image_path"], prompt, api_key)
                 total_cost[0] += cost
+                print(f"    [spectrum/{variant}] item {item_idx + 1}/{len(items)} {model_key} ({time.time() - t0:.1f}s)", flush=True)
                 if not isinstance(chain_text, str):
                     continue
                 parsed = pilot.parse_chain(chain_text)
@@ -226,17 +230,21 @@ def run_stability(n, seed, api_key, total_cost):
     rates = {}
     for variant, prompt_template in PROMPT_VARIANTS["stability"].items():
         hits = {}
-        for mat in materials:
+        for mat_idx, mat in enumerate(materials):
             prompt = prompt_template.format(formula=mat["formula_pretty"])
             for model_key in PROMPT_MODELS:
+                t0 = time.time()
                 chain_text, cost = call_model(model_key, "text", None, prompt, api_key)
                 total_cost[0] += cost
+                print(f"    [stability/{variant}] item {mat_idx + 1}/{len(materials)} {model_key} ({time.time() - t0:.1f}s)", flush=True)
                 if not isinstance(chain_text, str):
                     continue
                 claimed = pilot_dft.parse_dft_chain(chain_text)
                 if claimed not in ("STABLE", "UNSTABLE"):
                     continue
                 consistent = stability_claim_consistent(claimed == "STABLE", mat["energy_above_hull"])
+                if consistent is None:  # near-hull abstention band
+                    continue
                 hits.setdefault(model_key, []).append(consistent)
         rates[variant] = {m: float(np.mean(v)) for m, v in hits.items() if v}
         print(f"[stability/{variant}] " + ", ".join(f"{m}={r:.3f}(n={len(hits[m])})" for m, r in sorted(rates[variant].items())), flush=True)
