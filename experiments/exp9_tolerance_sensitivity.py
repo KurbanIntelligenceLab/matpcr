@@ -71,11 +71,24 @@ SPECTRUM_PROMINENCE_FRACS = (0.03, 0.05, 0.08)
 _xrd_ref_cache = {}
 _spectrum_signal_cache = {}
 
+# The collected records store source_file paths from the machines the data was first staged on
+# (/ephemeral/matpcr/..., /home/ubuntu/...). Map them onto the local MATPCR_DATA_ROOT, exactly as
+# exp25/exp27 do; without this every lookup fails and the xrd/spectrum sweeps come out empty.
+DATA_ROOT = os.environ.get("MATPCR_DATA_ROOT", "/ephemeral/matpcr")
+
+
+def _resolve(p):
+    if "/opxrd/" in p:
+        return os.path.join(DATA_ROOT, "opxrd", p.split("/opxrd/")[-1])
+    if "/rruff/" in p:
+        return os.path.join(DATA_ROOT, "rruff", p.split("/rruff/")[-1])
+    return p
+
 
 def _get_xrd_refs(source_file):
     if source_file not in _xrd_ref_cache:
         try:
-            _xrd_ref_cache[source_file] = xrd_reference_peaks(source_file)
+            _xrd_ref_cache[source_file] = xrd_reference_peaks(_resolve(source_file))
         except Exception:
             _xrd_ref_cache[source_file] = None
     return _xrd_ref_cache[source_file]
@@ -84,7 +97,7 @@ def _get_xrd_refs(source_file):
 def _get_spectrum_signal(source_file):
     if source_file not in _spectrum_signal_cache:
         try:
-            _spectrum_signal_cache[source_file] = spectrum_signal(source_file)
+            _spectrum_signal_cache[source_file] = spectrum_signal(_resolve(source_file))
         except Exception:
             _spectrum_signal_cache[source_file] = None
     return _spectrum_signal_cache[source_file]
